@@ -1,14 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Chat en Tiempo Real</title>
+  <title>Chat con Nombres</title>
   <style>
-    body { margin: 0; font-family: sans-serif; display: flex; flex-direction: column; height: 100vh; }
+    body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; height: 100vh; background: #e5ddd5; }
     #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; }
-    #messages li { padding: 8px; margin-bottom: 10px; background: #f4f4f4; border-radius: 5px; border-bottom: 1px solid #eee; }
-    #form { background: #333; padding: 10px; display: flex; }
-    #input { border: none; padding: 10px; flex-grow: 1; border-radius: 5px; margin-right: 10px; }
-    button { background: #28a745; border: none; padding: 10px 20px; color: #fff; border-radius: 5px; cursor: pointer; }
+    #messages li { padding: 10px; margin-bottom: 8px; background: white; border-radius: 8px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); max-width: 80%; }
+    #messages li b { color: #075e54; display: block; font-size: 0.8em; margin-bottom: 3px; }
+    #form { background: #f0f0f0; padding: 15px; display: flex; border-top: 1px solid #ddd; }
+    #input { border: 1px solid #ccc; padding: 12px; flex-grow: 1; border-radius: 20px; margin-right: 10px; outline: none; }
+    button { background: #128c7e; border: none; padding: 10px 25px; color: #fff; border-radius: 20px; cursor: pointer; font-weight: bold; }
   </style>
 </head>
 <body>
@@ -20,6 +21,10 @@
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const socket = io();
+    
+    // 1. Pedir el nombre al entrar
+    let nombreUsuario = prompt("¿Cuál es tu nombre?") || "Anónimo";
+
     const form = document.getElementById('form');
     const input = document.getElementById('input');
     const messages = document.getElementById('messages');
@@ -27,16 +32,21 @@
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (input.value) {
-        socket.emit('chat message', input.value);
+        // 2. Enviamos un objeto con el nombre y el mensaje
+        socket.emit('chat message', {
+          user: nombreUsuario,
+          text: input.value
+        });
         input.value = '';
       }
     });
 
-    socket.on('chat message', (msg) => {
+    socket.on('chat message', (data) => {
       const item = document.createElement('li');
-      item.textContent = msg;
+      // 3. Mostramos "Nombre: Mensaje"
+      item.innerHTML = `<b>${data.user}</b>${data.text}`;
       messages.appendChild(item);
-      window.scrollTo(0, document.body.scrollHeight);
+      messages.scrollTop = messages.scrollHeight;
     });
   </script>
 </body>
