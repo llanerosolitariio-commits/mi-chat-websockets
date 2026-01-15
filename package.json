@@ -1,7 +1,7 @@
 {
-  "name": "chat-privado-movil",
+  "name": "chat-privado",
   "version": "1.0.0",
-  "description": "Chat optimizado para Android",
+  "description": "Chat con salas y contraseñas",
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
