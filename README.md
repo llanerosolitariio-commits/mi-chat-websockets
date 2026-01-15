@@ -1,8 +1,7 @@
-# Chat Multiusuario en Tiempo Real
-Proyecto creado con Node.js, Express y Socket.io.
+# Chat Salas Privadas
+Chat optimizado para móviles con salas protegidas por contraseña.
 
-## Instalación rápida
-1. Clona el repo: `git clone https://github.com/TU_USUARIO/mi-chat-websockets.git`
-2. Instala dependencias: `npm install`
-3. Ejecuta: `node server.js`
-4. Abre `http://localhost:3000` en tu navegador.
+## Instalación
+1. Ejecuta `npm install`
+2. Inicia con `npm start`
+3. Abre `http://localhost:3000`
