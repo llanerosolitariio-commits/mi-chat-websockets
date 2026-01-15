@@ -1,40 +1,79 @@
 <!DOCTYPE html>
-<html lang="es">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat Salas Privadas</title>
-    <style>
-        /* Ajustes para que en Android ocupe toda la pantalla sin scroll raro */
-        * { box-sizing: border-box; }
-        body { 
-            margin: 0; 
-            font-family: sans-serif; 
-            background: #e5ddd5; 
-            display: flex; 
-            flex-direction: column; 
-            height: 100vh; 
-            height: -webkit-fill-available; /* Ajuste para navegadores móviles */
-        }
-        
-        /* Pantalla de Inicio (Login) */
-        #setup { 
-            position: fixed; 
-            top: 0; left: 0; 
-            width: 100%; height: 100%; 
-            background: white; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            justify-content: center; 
-            z-index: 100; 
-            padding: 20px;
-        }
-        
-        #setup h2 { color: #075e54; margin-bottom: 20px; }
-        
-        input { 
-            padding: 12px 15px; 
+  <title>Chat Salas Privadas</title>
+  <style>
+    body { margin: 0; font-family: sans-serif; background: #e5ddd5; display: flex; flex-direction: column; height: 100vh; }
+    #setup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+    #messages { list-style: none; padding: 20px; flex-grow: 1; overflow-y: auto; display: none; }
+    #messages li { background: white; padding: 10px; margin-bottom: 8px; border-radius: 8px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); }
+    #form { display: none; background: #f0f0f0; padding: 15px; }
+    input { padding: 10px; margin: 5px; border-radius: 20px; border: 1px solid #ccc; outline: none; }
+    button { padding: 10px 20px; border-radius: 20px; border: none; background: #128c7e; color: white; cursor: pointer; }
+    #link-area { padding: 10px; background: #dcf8c6; font-size: 0.8em; display: none; }
+  </style>
+</head>
+<body>
+
+  <div id="setup">
+    <h2 id="titulo">Crear o Unirse a Sala</h2>
+    <input id="userName" placeholder="Tu nombre" />
+    <input id="roomName" placeholder="Nombre de la sala" />
+    <input id="roomPass" type="password" placeholder="Contraseña de la sala" />
+    <button onclick="entrar()">Entrar al Chat</button>
+  </div>
+
+  <div id="link-area">Link de invitación: <b id="invitation-link"></b></div>
+  <ul id="messages"></ul>
+  <form id="form" onsubmit="enviarMensaje(event)">
+    <input id="input" autocomplete="off" placeholder="Escribe..." /><button>Enviar</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const params = new URLSearchParams(window.location.search);
+    const salaUrl = params.get('sala');
+
+    if(salaUrl) {
+      document.getElementById('roomName').value = salaUrl;
+      document.getElementById('titulo').innerText = "Unirse a la sala: " + salaUrl;
+    }
+
+    function entrar() {
+      const user = document.getElementById('userName').value;
+      const room = document.getElementById('roomName').value;
+      const pass = document.getElementById('roomPass').value;
+      if(user && room && pass) {
+        socket.emit('joinRoom', { user, room, pass });
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('messages').style.display = 'block';
+        document.getElementById('form').style.display = 'flex';
+        document.getElementById('link-area').style.display = 'block';
+        document.getElementById('invitation-link').innerText = window.location.origin + "/?sala=" + room;
+      }
+    }
+
+    function enviarMensaje(e) {
+      e.preventDefault();
+      const input = document.getElementById('input');
+      if (input.value) {
+        socket.emit('chatMessage', input.value);
+        input.value = '';
+      }
+    }
+
+    socket.on('message', (msg) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${msg.user}:</b> ${msg.text}`;
+      document.getElementById('messages').appendChild(li);
+      document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    });
+
+    socket.on('errorMsg', (err) => alert(err));
+  </script>
+</body>
+</html>            padding: 12px 15px; 
             margin: 8px 0; 
             border-radius: 10px; 
             border: 1px solid #ccc; 
