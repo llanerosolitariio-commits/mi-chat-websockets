@@ -1,1 +1,13 @@
-{ "name": "chat-socket-io", "version": "1.0.0", "main": "server.js", "scripts": { "start": "node server.js" }, "dependencies": { "express": "^4.18.2", "socket.io": "^4.7.2" } } 
+{
+  "name": "chat-privado-movil",
+  "version": "1.0.0",
+  "description": "Chat optimizado para Android",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2"
+  }
+}
