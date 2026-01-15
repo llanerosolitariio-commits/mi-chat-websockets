@@ -1,40 +1,192 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Chat Privado</title>
-  <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: #e5ddd5; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-    
-    /* Setup de entrada */
-    #setup { position: fixed; inset: 0; background: #ffffff; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
-    #setup input { width: 100%; max-width: 300px; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #ddd; font-size: 16px; }
-    
-    /* Area de mensajes */
-    #messages { list-style: none; padding: 15px; flex-grow: 1; overflow-y: auto; display: none; margin: 0; }
-    #messages li { background: white; padding: 10px 15px; margin-bottom: 10px; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); max-width: 85%; align-self: flex-start; word-wrap: break-word; }
-    
-    /* Formulario inferior fijo */
-    #form { display: none; background: #f0f0f0; padding: 10px; border-top: 1px solid #ddd; width: 100%; display: flex; gap: 8px; }
-    #form input { flex-grow: 1; padding: 12px; border-radius: 25px; border: 1px solid #ccc; font-size: 16px; outline: none; }
-    
-    /* Botones */
-    button { padding: 10px 20px; border-radius: 25px; border: none; background: #128c7e; color: white; font-weight: bold; cursor: pointer; transition: 0.3s; }
-    button:active { transform: scale(0.95); background: #075e54; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Salas Privadas</title>
+    <style>
+        /* Ajustes para que en Android ocupe toda la pantalla sin scroll raro */
+        * { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            font-family: sans-serif; 
+            background: #e5ddd5; 
+            display: flex; 
+            flex-direction: column; 
+            height: 100vh; 
+            height: -webkit-fill-available; /* Ajuste para navegadores móviles */
+        }
+        
+        /* Pantalla de Inicio (Login) */
+        #setup { 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; height: 100%; 
+            background: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            z-index: 100; 
+            padding: 20px;
+        }
+        
+        #setup h2 { color: #075e54; margin-bottom: 20px; }
+        
+        input { 
+            padding: 12px 15px; 
+            margin: 8px 0; 
+            border-radius: 10px; 
+            border: 1px solid #ccc; 
+            outline: none; 
+            width: 100%; 
+            max-width: 300px;
+            font-size: 16px; /* Evita zoom automático en Android */
+        }
+        
+        button { 
+            padding: 12px 25px; 
+            border-radius: 10px; 
+            border: none; 
+            background: #128c7e; 
+            color: white; 
+            cursor: pointer; 
+            font-weight: bold;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 10px;
+        }
 
-    #link-area { padding: 8px; background: #dcf8c6; font-size: 12px; text-align: center; border-bottom: 1px solid #c9e3b2; display: none; }
-  </style>
+        /* Área de Mensajes */
+        #messages { 
+            list-style: none; 
+            padding: 15px; 
+            flex-grow: 1; 
+            overflow-y: auto; 
+            display: none; /* Se activa al entrar */
+            margin: 0;
+            padding-bottom: 70px; /* Espacio para el formulario */
+        }
+        
+        #messages li { 
+            background: white; 
+            padding: 10px; 
+            margin-bottom: 8px; 
+            border-radius: 8px; 
+            box-shadow: 0 1px 1px rgba(0,0,0,0.1); 
+            max-width: 90%;
+            word-wrap: break-word;
+        }
+
+        /* Formulario de envío abajo */
+        #form { 
+            display: none; 
+            background: #f0f0f0; 
+            padding: 10px; 
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            border-top: 1px solid #ddd;
+        }
+        
+        #form input { 
+            flex-grow: 1; 
+            margin: 0; 
+            border-radius: 20px; 
+            max-width: none;
+        }
+        
+        #form button { 
+            width: auto; 
+            margin: 0 0 0 8px; 
+            padding: 10px 15px;
+        }
+
+        #link-area { 
+            padding: 10px; 
+            background: #dcf8c6; 
+            font-size: 0.8em; 
+            display: none; 
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
   <div id="setup">
-    <h2 style="color: #075e54">Chat Privado</h2>
+    <h2 id="titulo">Crear o Unirse a Sala</h2>
     <input id="userName" placeholder="Tu nombre" />
     <input id="roomName" placeholder="Nombre de la sala" />
     <input id="roomPass" type="password" placeholder="Contraseña de la sala" />
-    <button onclick="entrar()" style="width: 100%; max-width: 300px; margin-top: 10px;">Entrar al Chat</button>
+    <button onclick="entrar()">Entrar al Chat</button>
+  </div>
+
+  <div id="link-area">Link de invitación: <b id="invitation-link"></b></div>
+  
+  <ul id="messages"></ul>
+  
+  <form id="form" onsubmit="enviarMensaje(event)">
+    <input id="input" autocomplete="off" placeholder="Escribe..." />
+    <button>Enviar</button>
+  </form>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const params = new URLSearchParams(window.location.search);
+    const salaUrl = params.get('sala');
+
+    // Si viene de un link, autocompletar sala
+    if(salaUrl) {
+      document.getElementById('roomName').value = salaUrl;
+      document.getElementById('titulo').innerText = "Unirse a la sala: " + salaUrl;
+    }
+
+    function entrar() {
+      const user = document.getElementById('userName').value;
+      const room = document.getElementById('roomName').value;
+      const pass = document.getElementById('roomPass').value;
+
+      if(user && room && pass) {
+        // Enviar datos al servidor
+        socket.emit('joinRoom', { user, room, pass });
+        
+        // Cambiar visibilidad de la interfaz
+        document.getElementById('setup').style.display = 'none';
+        document.getElementById('messages').style.display = 'block';
+        document.getElementById('form').style.display = 'flex';
+        document.getElementById('link-area').style.display = 'block';
+        document.getElementById('invitation-link').innerText = window.location.origin + "/?sala=" + room;
+      } else {
+        alert("Por favor completa todos los campos");
+      }
+    }
+
+    function enviarMensaje(e) {
+      e.preventDefault();
+      const input = document.getElementById('input');
+      if (input.value) {
+        socket.emit('chatMessage', input.value);
+        input.value = '';
+      }
+    }
+
+    socket.on('message', (msg) => {
+      const li = document.createElement('li');
+      li.innerHTML = `<b>${msg.user}:</b> ${msg.text}`;
+      const list = document.getElementById('messages');
+      list.appendChild(li);
+      // Auto-scroll hacia abajo
+      list.scrollTop = list.scrollHeight;
+    });
+
+    socket.on('errorMsg', (err) => {
+      alert(err);
+      location.reload(); // Recargar si la contraseña es mal o hay error
+    });
+  </script>
+</body>
+</html>    <button onclick="entrar()" style="width: 100%; max-width: 300px; margin-top: 10px;">Entrar al Chat</button>
   </div>
 
   <div id="link-area">Link: <span id="invitation-link" style="font-weight: bold; color: #075e54"></span></div>
